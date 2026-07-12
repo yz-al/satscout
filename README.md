@@ -17,6 +17,12 @@ that came up repeatedly in user interviews:
 ## Install
 
 ```bash
+pip install satscout
+```
+
+Or from source:
+
+```bash
 git clone https://github.com/yz-al/satscout && cd satscout
 pip install .                   # dev: pip install -e '.[dev]'
 ```
