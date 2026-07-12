@@ -20,11 +20,17 @@ that came up repeatedly in user interviews:
 pip install satscout
 ```
 
-Or from source:
+Or straight from GitHub (latest main):
+
+```bash
+pip install git+https://github.com/yz-al/satscout
+```
+
+For development:
 
 ```bash
 git clone https://github.com/yz-al/satscout && cd satscout
-pip install .                   # dev: pip install -e '.[dev]'
+pip install -e '.[dev]'
 ```
 
 Only dependency: `requests`. Python ≥ 3.10.
