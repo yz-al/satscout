@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "satscout"
+version = "0.1.0"
+description = "Find, vet, and validate public satellite/climate datasets (STAC discovery + Olofsson et al. 2014 accuracy assessment)"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = ["requests>=2.28"]
+
+[project.optional-dependencies]
+dev = ["pytest>=7"]
+
+[project.scripts]
+satscout = "satscout.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["satscout*"]
+
+[tool.pytest.ini_options]
+markers = ["network: tests that hit live public STAC APIs (deselect with '-m \"not network\"')"]
