@@ -5,7 +5,7 @@
 #     PyPI project name: satscout
 #     Owner:             yz-al
 #     Repository:        satscout
-#     Workflow name:     publish.yml
+#     Workflow name:     workflow.yml
 #     Environment:       pypi
 #
 # Then releasing is just:
