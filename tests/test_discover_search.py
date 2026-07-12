@@ -61,16 +61,29 @@ FAKE_ITEM = {
         "gsd": 10,
     },
     "assets": {"red": {}, "green": {}, "blue": {}, "nir": {}},
+    "links": [
+        {"rel": "collection", "href": "https://x/collections/sentinel-2-l2a"},
+        {"rel": "self", "href": "https://x/collections/sentinel-2-l2a/items/S2B_10SEG_20240712"},
+    ],
 }
 
 
 def test_normalize_item():
-    s = _normalize(FAKE_ITEM)
+    s = _normalize(FAKE_ITEM, catalog="earth-search")
     assert s.id == "S2B_10SEG_20240712"
     assert s.cloud_cover == pytest.approx(3.2)
     assert s.platform == "sentinel-2b"
     assert s.gsd == 10
     assert s.assets == ["blue", "green", "nir", "red"]
+    # provenance trace: which catalog + the canonical STAC record URL
+    assert s.catalog == "earth-search"
+    assert s.stac_href == "https://x/collections/sentinel-2-l2a/items/S2B_10SEG_20240712"
+    assert s.to_dict()["stac_href"] == s.stac_href
+
+
+def test_normalize_item_without_self_link():
+    s = _normalize({"id": "x", "properties": {}})
+    assert s.catalog is None and s.stac_href is None
 
 
 def test_normalize_item_without_cloud_cover():
@@ -109,6 +122,16 @@ def test_report_empty():
     rep = build_report("c", [])
     assert rep.n_scenes == 0
     assert any("NO SCENES" in v for v in rep.verdicts)
+
+
+def test_report_carries_provenance():
+    from satscout.report import format_report
+
+    prov = {"catalog": "earth-search", "collection": "c", "retrieved_at": "2026-07-12T00:00:00+00:00"}
+    rep = build_report("c", [_scene("2024-01-01T00:00:00Z", 5)], provenance=prov)
+    assert rep.to_dict()["provenance"] == prov
+    text = format_report(rep)
+    assert "source:" in text and "earth-search" in text
 
 
 @pytest.mark.network

@@ -1,10 +1,11 @@
 """Item-level (scene-level) search with metadata-only vetting.
 
-The pain point this solves, verbatim from user research: "I find data on
-AWS, sometimes need to dwl metadata to see for example what is the cloud
-cover in the case of optical data." Here the STAC API is queried directly
-for scene properties — cloud cover, resolution, platform, bands — so no
-metadata files (let alone imagery) need to be downloaded to vet a dataset.
+Researchers routinely download per-scene metadata files just to check
+properties like cloud cover before committing to a dataset. Here the STAC
+API is queried directly for scene properties — cloud cover, resolution,
+platform, bands — so no metadata files (let alone imagery) need to be
+downloaded to vet a dataset. Every Scene records which catalog it came
+from and its canonical STAC URL, so results stay traceable and citable.
 """
 
 from dataclasses import dataclass
@@ -24,6 +25,9 @@ class Scene:
     gsd: float | None  # ground sample distance, meters
     assets: list[str]
     bbox: list[float] | None
+    # provenance: where this record came from
+    catalog: str | None = None  # satscout catalog id, e.g. "earth-search"
+    stac_href: str | None = None  # canonical STAC item URL (rel=self link)
 
     def to_dict(self) -> dict:
         return {
@@ -35,10 +39,19 @@ class Scene:
             "gsd": self.gsd,
             "assets": self.assets,
             "bbox": self.bbox,
+            "catalog": self.catalog,
+            "stac_href": self.stac_href,
         }
 
 
-def _normalize(item: dict) -> Scene:
+def _self_href(item: dict) -> str | None:
+    for link in item.get("links", []) or []:
+        if link.get("rel") == "self" and link.get("href"):
+            return link["href"]
+    return None
+
+
+def _normalize(item: dict, catalog: str | None = None) -> Scene:
     props = item.get("properties", {}) or {}
     cc = props.get("eo:cloud_cover")
     return Scene(
@@ -50,6 +63,8 @@ def _normalize(item: dict) -> Scene:
         gsd=props.get("gsd"),
         assets=sorted((item.get("assets") or {}).keys()),
         bbox=item.get("bbox"),
+        catalog=catalog,
+        stac_href=_self_href(item),
     )
 
 
@@ -91,7 +106,7 @@ def search(
         items = search_items(
             cat.endpoint, [collection], bbox=bbox, datetime_range=dt, max_items=max_items
         )
-    scenes = [_normalize(i) for i in items]
+    scenes = [_normalize(i, catalog=cat.id) for i in items]
     if max_cloud is not None:
         scenes = [s for s in scenes if s.cloud_cover is None or s.cloud_cover <= max_cloud]
     return scenes

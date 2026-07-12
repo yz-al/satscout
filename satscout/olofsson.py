@@ -48,6 +48,10 @@ class AccuracyAssessment:
 
     def to_dict(self) -> dict:
         d = {
+            "method": (
+                "Stratified estimators per Olofsson et al. (2014), Remote "
+                "Sensing of Environment 148:42-57, doi:10.1016/j.rse.2014.02.015"
+            ),
             "classes": self.class_names,
             "overall_accuracy": self.overall_accuracy,
             "overall_accuracy_ci95": self.z * self.overall_se,

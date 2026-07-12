@@ -86,21 +86,40 @@ def cmd_search(args) -> int:
     for s in scenes:
         cc = f"{s.cloud_cover:.1f}" if s.cloud_cover is not None else "-"
         print(f"{(s.datetime or '?')[:19]:<22} {cc:>6} {(s.platform or '-'):<14} {s.id}")
-    print(f"\n{len(scenes)} scenes (metadata only — nothing was downloaded).")
+    print(
+        f"\n{len(scenes)} scenes from {args.catalog} (metadata only — nothing "
+        "was downloaded). Use --json for per-scene STAC URLs (stac_href)."
+    )
     return 0
 
 
 def cmd_check(args) -> int:
+    from datetime import datetime, timezone
+
+    bbox = _aoi_bbox(args)
     scenes = search(
         args.catalog,
         args.collection,
-        bbox=_aoi_bbox(args),
+        bbox=bbox,
         start=args.start,
         end=args.end,
         max_cloud=args.max_cloud,
         max_items=args.max_items,
     )
-    rep = build_report(args.collection, scenes, cloud_threshold=args.cloud_threshold)
+    provenance = {
+        "catalog": args.catalog,
+        "endpoint": CATALOGS[args.catalog].endpoint,
+        "collection": args.collection,
+        "bbox": list(bbox) if bbox else None,
+        "start": args.start,
+        "end": args.end,
+        "max_cloud": args.max_cloud,
+        "retrieved_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "satscout_version": __version__,
+    }
+    rep = build_report(
+        args.collection, scenes, cloud_threshold=args.cloud_threshold, provenance=provenance
+    )
     if args.json:
         print(json.dumps(rep.to_dict(), indent=2))
     else:

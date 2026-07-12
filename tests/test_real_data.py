@@ -43,6 +43,9 @@ def test_earth_search_server_side_cloud_filter():
     assert scenes, "expected low-cloud Sentinel-2 scenes over SF in summer 2024"
     assert all(s.cloud_cover is not None and s.cloud_cover <= 10 for s in scenes)
     assert all(s.datetime and s.datetime.startswith("2024-") for s in scenes)
+    # provenance: every scene records its catalog and canonical STAC URL
+    assert all(s.catalog == "earth-search" for s in scenes)
+    assert all(s.stac_href and s.stac_href.startswith("https://") for s in scenes)
 
 
 def test_earth_search_pagination_walks_multiple_pages():

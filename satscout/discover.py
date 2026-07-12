@@ -22,6 +22,7 @@ class CollectionHit:
     temporal_extent: tuple[str | None, str | None]
     keywords: list[str]
     description: str
+    endpoint: str = ""  # STAC API root this hit came from (provenance)
 
     def to_dict(self) -> dict:
         return {
@@ -32,6 +33,7 @@ class CollectionHit:
             "temporal_extent": list(self.temporal_extent),
             "keywords": self.keywords,
             "description": self.description,
+            "endpoint": self.endpoint,
         }
 
 
@@ -127,6 +129,7 @@ def discover(
                     temporal_extent=_collection_interval(coll),
                     keywords=coll.get("keywords", []) or [],
                     description=(coll.get("description") or "").strip().split("\n")[0][:200],
+                    endpoint=cat.endpoint,
                 )
             )
     hits.sort(key=lambda h: (-h.score, h.catalog, h.collection_id))

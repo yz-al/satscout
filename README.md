@@ -4,13 +4,13 @@ An open-source tool for remote-sensing researchers who need to match public
 satellite/climate archives to their own work. Built around two pain points
 that came up repeatedly in user interviews:
 
-1. **"I find data on AWS, sometimes need to download metadata just to see
-   the cloud cover."** → satscout searches the big public STAC catalogs and
-   surfaces scene metadata (cloud cover, revisit gaps, bands, resolution)
-   directly — **nothing is downloaded**.
-2. **"If validation means validating remote sensing products as per
-   Olofsson et al. 2014, that would be huge."** → satscout ships a complete,
-   tested implementation of the good-practice accuracy-assessment workflow:
+1. **Finding and vetting data means downloading metadata by hand** — e.g.
+   pulling scene metadata just to check cloud cover. satscout searches the
+   big public STAC catalogs and surfaces scene metadata (cloud cover,
+   revisit gaps, bands, resolution) directly — **nothing is downloaded**.
+2. **Validating remote-sensing products to the community standard**
+   (Olofsson et al. 2014) is high-value but tedious. satscout ships a
+   complete, tested implementation of the good-practice workflow:
    stratified sample design, error-matrix analysis, and unbiased
    (error-adjusted) area estimates with confidence intervals.
 

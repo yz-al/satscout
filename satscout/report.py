@@ -25,6 +25,9 @@ class AlignmentReport:
     gsd_meters: list[float] = field(default_factory=list)
     common_assets: list[str] = field(default_factory=list)
     verdicts: list[str] = field(default_factory=list)
+    # provenance: catalog/endpoint/query + retrieval time, so the report is
+    # reproducible and citable (e.g. in a methods section)
+    provenance: dict | None = None
 
     def to_dict(self) -> dict:
         return {k: v for k, v in self.__dict__.items()}
@@ -34,8 +37,13 @@ def _parse_dt(s: str) -> datetime:
     return datetime.fromisoformat(s.replace("Z", "+00:00")).astimezone(timezone.utc)
 
 
-def build_report(collection: str, scenes: list[Scene], cloud_threshold: float = 20.0) -> AlignmentReport:
-    rep = AlignmentReport(collection=collection, n_scenes=len(scenes))
+def build_report(
+    collection: str,
+    scenes: list[Scene],
+    cloud_threshold: float = 20.0,
+    provenance: dict | None = None,
+) -> AlignmentReport:
+    rep = AlignmentReport(collection=collection, n_scenes=len(scenes), provenance=provenance)
     if not scenes:
         rep.verdicts.append(
             "NO SCENES matched: the dataset likely does not cover this AOI/period "
@@ -121,4 +129,10 @@ def format_report(rep: AlignmentReport) -> str:
     lines.append("")
     for v in rep.verdicts:
         lines.append(f"  • {v}")
+    if rep.provenance:
+        lines.append("")
+        lines.append("source:")
+        for k, v in rep.provenance.items():
+            if v is not None:
+                lines.append(f"  {k}: {v}")
     return "\n".join(lines)

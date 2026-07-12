@@ -125,4 +125,32 @@ def test_check_offline_via_stub(monkeypatch, capsys):
         "--bbox", "0,0,1,1",
     ])
     assert rc == 1  # empty result → nonzero, scriptable
-    assert "NO SCENES" in capsys.readouterr().out
+    out = capsys.readouterr().out
+    assert "NO SCENES" in out
+    # provenance trace is printed even for empty results
+    assert "source:" in out and "earth-search.aws.element84.com" in out
+
+
+def test_check_json_includes_provenance(monkeypatch, capsys):
+    from satscout import cli
+
+    monkeypatch.setattr(cli, "search", lambda *a, **k: [])
+    main([
+        "check", "--catalog", "usgs-landsatlook", "--collection", "landsat-c2l2-sr",
+        "--bbox", "0,0,1,1", "--start", "2024-01-01", "--end", "2024-02-01",
+        "--max-cloud", "20", "--json",
+    ])
+    d = json.loads(capsys.readouterr().out)
+    prov = d["provenance"]
+    assert prov["catalog"] == "usgs-landsatlook"
+    assert prov["collection"] == "landsat-c2l2-sr"
+    assert prov["bbox"] == [0, 0, 1, 1]
+    assert prov["start"] == "2024-01-01" and prov["end"] == "2024-02-01"
+    assert prov["max_cloud"] == 20
+    assert "retrieved_at" in prov and "satscout_version" in prov
+
+
+def test_validate_assess_json_cites_method(matrix_file, capsys):
+    main(["validate", "assess", "--matrix", matrix_file, "--map-areas", AREAS, "--json"])
+    d = json.loads(capsys.readouterr().out)
+    assert "Olofsson" in d["method"]
