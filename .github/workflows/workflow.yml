@@ -16,6 +16,7 @@ name: publish
 on:
   push:
     tags: ["v*"]
+  workflow_dispatch: {}  # manual release from the Actions tab
 
 jobs:
   test:
